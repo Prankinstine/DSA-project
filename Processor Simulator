@@ -1,0 +1,145 @@
+#include <iostream>
+using namespace std;
+class Processor
+{
+public:
+    int input,AADDs=0,ACtrl=0, inst[5];
+    bool RAM[8] = { 0,0,0,0,0,0,0,0 }, ACC[2] = { 0,0 };
+    bool RAMin, ACCin;
+    bool ALUo, ACo, RAMs;
+    bool ip, i, rw, ALD, ALi, ADDs[3], Ctrl[3];
+    void RAMDISP()
+    {
+        cout << "\n";
+        for(int i = 1; i < 8; i++)
+        {
+            cout << RAM[i] << " ";
+        }
+    }
+    void ACCDISP()
+    {
+        cout << "\n";
+        cout << ACC[0] << "  " << ACC[1];
+    }
+    bool ALUproc()
+    {
+        switch (ACtrl)
+        {
+            case 0:
+            ALUo = !ACC[0];
+            break;
+            case 1:
+                ALUo = ACC[0];
+                break;
+            case 2:
+                ALUo = !ACC[1];
+                break;
+            case 3:
+                ALUo = ACC[1];
+                break;
+            case 4:
+                ALUo = !(ACC[0] && ACC[1]);
+                    break;
+            case 5:
+                ALUo = ACC[0] && ACC[1];
+                break;
+            case 6:
+                ALUo = ACC[0] || ACC[1];
+                break;
+            case 7:
+                ALUo = (!ACC[0] && ACC[1]) || (ACC[0] && !ACC[1]);
+                break;
+            default:
+                ALUo = false;
+                break;
+
+                return ALUo;
+        }
+    }
+    
+    bool RAMUX()
+    {
+        if (ip)
+        {
+            return ALUproc();
+        }
+        else
+        {
+            return i;
+        }
+    }
+    void RAMUpdate()
+    {
+        if (rw) {
+            RAM[AADDs] = RAMUX();
+
+        }
+    }
+    bool ACCMX()
+    {
+        return RAM[AADDs];
+    }
+    void AccLD()
+    {
+        if (ALD)
+        {
+            ACC[0] = ACC[1];
+            if (AADDs != 0)
+            {
+                ACC[1] = ACCMX();
+            }
+            else
+            {
+                ACC[1] = ALi;
+            }
+        }
+    }
+    void InstDC(int a,int c,int d)
+    {
+        AADDs = 0;
+        ACtrl = 0;
+        for (int k = 0; k < 3; k++)
+        {
+            ACtrl += (d % 10) * pow(2,k);
+            d =d/10;        
+        }
+        for (int j = 0; j < 3; j++)
+        {
+            AADDs += (c % 10) * pow(2,j);
+            c /= 10;
+        }
+        for (int i = 0; i < 5; i++)
+        {
+            inst[4 - i] = a % 10;
+            a = a/10;
+        }
+        ip = inst[0];
+        i = inst[1];
+        rw = inst[2];
+        ALD = inst[3];
+        ALi = inst[4];
+        RAMUpdate();
+        AccLD();
+        RAMDISP();
+        ACCDISP();
+    }
+    
+
+};
+int main()
+{
+    Processor MP;
+    int Inia=2,InA=0,InC=0,PC=1;
+    while (Inia + InA + InC != 0)
+    {
+        cout << "\nINSTRUCTION: " <<PC<< endl;
+        cin >> Inia >> InA >> InC;
+        MP.InstDC(Inia, InA, InC);
+        MP.ALUproc();
+        PC++;
+    }
+        
+
+    
+    return 0;
+}
