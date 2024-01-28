@@ -1,6 +1,57 @@
 #include <iostream>
 using namespace std;
-class Processor
+class CQueue {
+private:
+    unsigned long long* arr;
+    int front, rear, capacity;
+
+public:
+    CQueue(int size) {
+        capacity = size + 1; 
+        arr = new unsigned long long[capacity];
+        front = rear = 0;
+    }
+
+    ~CQueue() {
+        delete[] arr;
+    }
+
+    void enqueue(unsigned long long element) {
+        if (isFull()) {
+            cout << "Queue is full. Cannot enqueue.\n";
+            return;
+        }
+        arr[rear] = element;
+        rear = (rear + 1) % capacity;
+    }
+
+   unsigned long long dequeue() {
+        if (isEmpty()) 
+        {
+            cout << "Queue is empty. Cannot dequeue.\n";
+            return 0;
+        }
+        return arr[front];
+        front = (front + 1) % capacity;
+    }
+
+    unsigned long long peek() {
+        if (isEmpty()) {
+            cout << "Queue is empty. Cannot peek.\n";
+            return -1;  // Return a default value or handle it as per your requirement
+        }
+        return arr[front];
+    }
+
+    bool isEmpty() {
+        return front == rear;
+    }
+
+    bool isFull() {
+        return (rear + 1) % capacity == front;
+    }
+};
+class Processor1
 {
 public:
     int input,AADDs=0,ACtrl=0, inst[5];
@@ -11,15 +62,17 @@ public:
     void RAMDISP()
     {
         cout << "\n";
-        for(int i = 1; i < 8; i++)
+        cout << "a\tb\tc\td\te\tf\tg\n";
+        for(int p = 1; p < 8; p++)
         {
-            cout << RAM[i] << " ";
+            cout << RAM[p] << "\t";
         }
     }
     void ACCDISP()
     {
         cout << "\n";
-        cout << ACC[0] << "  " << ACC[1];
+        cout << "AC1\tAC2\n";
+        cout << ACC[0] << "\t" << ACC[1];
     }
     bool ALUproc()
     {
@@ -52,9 +105,8 @@ public:
             default:
                 ALUo = false;
                 break;
-
-                return ALUo;
         }
+        return ALUo;
     }
     
     bool RAMUX()
@@ -94,23 +146,23 @@ public:
             }
         }
     }
-    void InstDC(int a,int c,int d)
+    void InstDC(unsigned long long a)
     {
         AADDs = 0;
         ACtrl = 0;
         for (int k = 0; k < 3; k++)
         {
-            ACtrl += (d % 10) * pow(2,k);
-            d =d/10;        
+            ACtrl += (a % 10) * pow(2,k);
+            a =a/10;        
         }
         for (int j = 0; j < 3; j++)
         {
-            AADDs += (c % 10) * pow(2,j);
-            c /= 10;
+            AADDs += (a % 10) * pow(2,j);
+            a /= 10;
         }
-        for (int i = 0; i < 5; i++)
+        for (int p = 0; p < 5; p++)
         {
-            inst[4 - i] = a % 10;
+            inst[4 - p] = a % 10;
             a = a/10;
         }
         ip = inst[0];
@@ -121,25 +173,201 @@ public:
         RAMUpdate();
         AccLD();
         RAMDISP();
+        cout << "\n";
         ACCDISP();
     }
     
 
 };
+class Processor10
+{
+public:
+    int input, AADDs = 0, ACtrl = 0, inst[6];
+    bool RAM[8] = { 0,0,0,0,0,0,0,0 }, ACC= 0;
+    bool RAMin, ACCin;
+    bool ALUo, ACo, RAMs;
+    bool ip, i, rw, ALD, ALi, AD,ADDs[3], Ctrl[3];
+    void RAMDISP()
+    {
+        cout << "\n";
+        cout << "a\tb\tc\td\te\tf\tg\n";
+        for (int p = 1; p < 8; p++)
+        {
+            cout << RAM[p] << "\t";
+        }
+    }
+    void ACCDISP()
+    {
+        cout << "\n";
+        cout << "ACC\n";
+        cout << ACC;
+    }
+    bool ALUproc()
+    {
+        switch (ACtrl)
+        {
+        case 0:
+            ALUo = !ACC;
+            break;
+        case 1:
+            ALUo = ACC;
+            break;
+        case 2:
+            ALUo = !RAM[AADDs];
+            break;
+        case 3:
+            ALUo = RAM[AADDs];
+            break;
+        case 4:
+            ALUo = !(ACC && RAM[AADDs]);
+            break;
+        case 5:
+            ALUo = ACC && RAM[AADDs];
+            break;
+        case 6:
+            ALUo = ACC || RAM[AADDs];
+            break;
+        case 7:
+            ALUo = (!ACC && RAM[AADDs]) || (ACC && !RAM[AADDs]);
+            break;
+        default:
+            ALUo = false;
+            break;
+        }
+            return ALUo;
+        
+    }
+
+    bool RAMUX()
+    {
+        if (ip)
+        {
+            return ACC;
+        }
+        else
+        {
+            return i;
+        }
+    }
+    void RAMUpdate()
+    {
+        if (rw) {
+            RAM[AADDs] = RAMUX();
+
+        }
+    }
+    bool ACCMX()
+    {
+        if (AD)
+        {
+            return ALUproc();
+        }
+        else
+        {
+            return RAM[AADDs];
+        }
+    }
+    void AccLD()
+    {
+        if (ALD)
+        {
+            if (AADDs != 0)
+            {
+                ACC = ACCMX();
+            }
+            else
+            {
+                ACC = ALi;
+            }
+        }
+    }
+    void InstDC(unsigned long long a)
+    {
+        AADDs = 0;
+        ACtrl = 0;
+        for (int k = 0; k < 3; k++)
+        {
+            ACtrl += (a % 10) * pow(2, k);
+            a = a / 10;
+        }
+        for (int j = 0; j < 3; j++)
+        {
+            AADDs += (a % 10) * pow(2, j);
+            a /= 10;
+        }
+        for (int p = 0; p < 6; p++)
+        {
+            inst[5 - p] = a % 10;
+            a = a / 10;
+        }
+        ip = inst[0];
+        i = inst[1];
+        rw = inst[2];
+        ALD = inst[3];
+        ALi = inst[4];
+        AD = inst[5];
+        RAMUpdate();
+        AccLD();
+        RAMDISP();
+        cout << "\n";
+        ACCDISP();
+    }
+
+
+};
+void Queueinst();
 int main()
 {
-    Processor MP;
-    int Inia=2,InA=0,InC=0,PC=1;
-    while (Inia + InA + InC != 0)
-    {
-        cout << "\nINSTRUCTION: " <<PC<< endl;
-        cin >> Inia >> InA >> InC;
-        MP.InstDC(Inia, InA, InC);
-        MP.ALUproc();
-        PC++;
-    }
-        
-
+    Processor1 MP;
+    Processor10 Mp;  
+    unsigned long long instruction = 1;
+    int PC = 1,Qs=0;
+    bool model;
     
+    //cout << "Would you like to set up a queue?(1,yes),(0,no)" << endl;
+   // cin >> model;
+   // if (model)
+   // {
+       // cout << "ENter Queue size" << endl;
+       // cin >> Qs;
+        //CQueue InstQ(Qs);
+       // while (!InstQ.isFull())
+        //{
+         //   cout << "Instruction: " << PC <<"  ";
+        //    cin >> instruction;
+        //    InstQ.enqueue(instruction);
+         //   PC++;
+       // }
+      //  PC = 1;
+   // }
+    cout << "Choose processor model...( 0 for model 1 ), (1 for model 10)" << endl;
+    cin >> model;
+    if (!model)
+    {
+        while (instruction != 0)
+        {
+            cout << "\nINSTRUCTION: " << PC << endl;
+            //cin >> Inia >> InA >> InC;
+            cin >> instruction;
+            //MP.InstDC(Inia, InA, InC);
+            MP.InstDC(instruction);
+            MP.ALUproc();
+            PC++;
+        }
+    }
+    else
+    {
+        while (instruction != 0)
+        {
+            cout << "\nINSTRUCTION: " << PC << endl;
+            //cin >> Inia >> InA >> InC;
+            cin >> instruction;
+            //MP.InstDC(Inia, InA, InC);
+            Mp.InstDC(instruction);
+            Mp.ALUproc();
+            PC++;
+        }
+    }
+    cout << "\n\n \tPROCESSOR HALT!!!";
     return 0;
 }
